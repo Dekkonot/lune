@@ -43,6 +43,7 @@ impl LuaUserData for LuaMatches {
         methods.add_meta_method("__tostring", |lua, this, ()| {
             format!("Captures({})", this.len()).into_lua(lua)
         });
+        //TODO Implement __iter
     }
 }
 
@@ -86,7 +87,7 @@ impl LuaMatch {
 
 impl fmt::Display for LuaMatch {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "Capture({})", &self.text[self.range()])
+        write!(f, "Match({})", &self.text[self.range()])
     }
 }
 
