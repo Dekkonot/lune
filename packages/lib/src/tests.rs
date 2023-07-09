@@ -103,6 +103,8 @@ create_tests! {
     task_delay: "task/delay",
     task_spawn: "task/spawn",
     task_wait: "task/wait",
+
+    regex_match: "regex/match",
 }
 
 #[cfg(feature = "roblox")]
