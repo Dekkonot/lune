@@ -38,7 +38,7 @@ impl LuaUserData for LuaMatch {
     }
 
     fn add_methods<'lua, M: LuaUserDataMethods<'lua, Self>>(methods: &mut M) {
-        methods.add_method("isempty", |lua, this, ()| {
+        methods.add_method("isEmpty", |lua, this, ()| {
             this.range().is_empty().into_lua(lua)
         });
 
