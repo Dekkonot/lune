@@ -46,8 +46,10 @@ impl LuaUserData for LuaCaptures {
     fn add_methods<'lua, M: LuaUserDataMethods<'lua, Self>>(methods: &mut M) {
         methods.add_method("get", |lua, this, n: usize| {
             let captures = this.captures();
-            let mtch = captures.get(n).expect("invalid match");
-            LuaMatch::new(this.text(), mtch).into_lua(lua)
+            match captures.get(n) {
+                Some(mtch) => LuaMatch::new(this.text(), mtch).into_lua(lua),
+                None => Ok(LuaNil),
+            }
         });
 
         methods.add_method("group", |lua, this, group: String| {
