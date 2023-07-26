@@ -36,6 +36,10 @@ impl LuaCaptures {
     pub fn text(&self) -> Arc<String> {
         Arc::clone(self.inner.borrow_owner())
     }
+
+    pub fn len(&self) -> usize {
+        self.captures().len() - 1
+    }
 }
 
 impl LuaUserData for LuaCaptures {
@@ -60,15 +64,15 @@ impl LuaUserData for LuaCaptures {
             new.into_lua(lua)
         });
 
-        methods.add_meta_method(LuaMetaMethod::Len, |lua, this, ()| {
-            this.captures().len().into_lua(lua)
-        });
+        methods.add_meta_method(LuaMetaMethod::Len, |lua, this, ()| this.len().into_lua(lua));
         methods.add_meta_method(LuaMetaMethod::ToString, |lua, this, ()| {
-            format!("Captures({} captures)", this.captures().len()).into_lua(lua)
+            format!("Captures({} captures)", this.len()).into_lua(lua)
         });
     }
 
     fn add_fields<'lua, F: LuaUserDataFields<'lua, Self>>(fields: &mut F) {
+        fields.add_field_method_get("len", |lua, this| this.len().into_lua(lua));
+
         fields.add_meta_field("__type", "RegexCaptures")
     }
 }
