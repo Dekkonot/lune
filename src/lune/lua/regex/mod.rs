@@ -66,6 +66,6 @@ impl LuaUserData for LuaRegex {
     fn add_fields<'lua, F: LuaUserDataFields<'lua, Self>>(fields: &mut F) {
         fields.add_field_method_get("pattern", |lua, this| this.inner.as_str().into_lua(lua));
 
-        fields.add_meta_field("__type", "Regex")
+        fields.add_meta_field("__type", "Regex");
     }
 }
