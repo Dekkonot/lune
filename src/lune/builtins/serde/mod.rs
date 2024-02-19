@@ -2,11 +2,14 @@ use mlua::prelude::*;
 
 pub(super) mod compress_decompress;
 pub(super) mod encode_decode;
+pub(super) mod hash;
 
 use compress_decompress::{compress, decompress, CompressDecompressFormat};
 use encode_decode::{EncodeDecodeConfig, EncodeDecodeFormat};
 
 use crate::lune::util::TableBuilder;
+
+use self::hash::HashAlgorithm;
 
 pub fn create(lua: &'static Lua) -> LuaResult<LuaTable> {
     TableBuilder::new(lua)?
@@ -14,6 +17,8 @@ pub fn create(lua: &'static Lua) -> LuaResult<LuaTable> {
         .with_function("decode", serde_decode)?
         .with_async_function("compress", serde_compress)?
         .with_async_function("decompress", serde_decompress)?
+        .with_function("hash", hash_message)?
+        .with_function("hmac", hmac_message)?
         .build_readonly()
 }
 
@@ -46,5 +51,21 @@ async fn serde_decompress<'lua>(
     (format, str): (CompressDecompressFormat, LuaString<'lua>),
 ) -> LuaResult<LuaString<'lua>> {
     let bytes = decompress(format, str).await?;
+    lua.create_string(bytes)
+}
+
+fn hash_message<'lua>(
+    lua: &'lua Lua,
+    (algorithm, message): (HashAlgorithm, LuaValue<'lua>),
+) -> LuaResult<LuaString<'lua>> {
+    let bytes = algorithm.hash(message)?;
+    lua.create_string(bytes)
+}
+
+fn hmac_message<'lua>(
+    lua: &'lua Lua,
+    (algorithm, message, key): (HashAlgorithm, LuaValue<'lua>, LuaValue<'lua>),
+) -> LuaResult<LuaString<'lua>> {
+    let bytes = algorithm.hmac(message, key)?;
     lua.create_string(bytes)
 }
