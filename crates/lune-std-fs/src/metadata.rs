@@ -93,6 +93,27 @@ impl<'lua> IntoLua<'lua> for FsPermissions {
     }
 }
 
+impl<'lua> FromLua<'lua> for FsPermissions {
+    fn from_lua(value: LuaValue<'lua>, _: &'lua Lua) -> LuaResult<Self> {
+        if let LuaValue::Table(tab) = value {
+            let read_only: bool = match tab.get("readOnly") {
+                Ok(read_only) => Ok(read_only),
+                Err(_) => Err(LuaError::runtime("Missing 'readOnly' in file Permissions")),
+            }?;
+            Ok(Self { read_only })
+        } else {
+            Err(LuaError::FromLuaConversionError {
+                from: value.type_name(),
+                to: "FsPermissions",
+                message: Some(format!(
+                    "Invalid permissions - expected table, got {}",
+                    value.type_name()
+                )),
+            })
+        }
+    }
+}
+
 #[derive(Debug, Clone)]
 pub struct FsMetadata {
     pub(crate) kind: FsMetadataKind,

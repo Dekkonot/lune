@@ -4,6 +4,7 @@ use std::io::ErrorKind as IoErrorKind;
 use std::path::PathBuf;
 
 use bstr::{BString, ByteSlice};
+use metadata::FsPermissions;
 use mlua::prelude::*;
 use tokio::fs;
 
@@ -33,6 +34,7 @@ pub fn module(lua: &Lua) -> LuaResult<LuaTable> {
         .with_async_function("removeFile", fs_remove_file)?
         .with_async_function("removeDir", fs_remove_dir)?
         .with_async_function("metadata", fs_metadata)?
+        .with_async_function("setPermissions", fs_set_permissions)?
         .with_async_function("isFile", fs_is_file)?
         .with_async_function("isDir", fs_is_dir)?
         .with_async_function("move", fs_move)?
@@ -84,6 +86,13 @@ async fn fs_metadata(_: &Lua, path: String) -> LuaResult<FsMetadata> {
         Ok(meta) => Ok(FsMetadata::from(meta)),
         Err(e) => Err(e.into()),
     }
+}
+
+async fn fs_set_permissions(_: &Lua, (path, perms): (String, FsPermissions)) -> LuaResult<()> {
+    let mut permissions = fs::metadata(&path).await.into_lua_err()?.permissions();
+    permissions.set_readonly(perms.read_only);
+
+    fs::set_permissions(path, permissions).await.into_lua_err()
 }
 
 async fn fs_is_file(_: &Lua, path: String) -> LuaResult<bool> {
