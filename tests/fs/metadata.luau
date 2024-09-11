@@ -67,6 +67,30 @@ assert(typeof(metaAfter.createdAt) == "DateTime", "File metadata createdAt is no
 assert(metaAfter.permissions ~= nil, "File metadata permissions are missing")
 assert(not metaAfter.permissions.readOnly, "File metadata permissions are readonly")
 
+--[[
+	1. We should be able to set a file to readonly
+	2. It should show up in fs.metadata
+	3. We should be able to change it back
+]]
+fs.setPermissions(TEMP_FILE_PATH, { readOnly = true })
+local readOnlyMeta1 = fs.metadata(TEMP_FILE_PATH)
+assert(
+	readOnlyMeta1.permissions ~= nil,
+	"File metadata permissions are missing after readOnly set to true"
+)
+assert(readOnlyMeta1.permissions.readOnly, "setPermissions did not update the readOnly to be true")
+
+fs.setPermissions(TEMP_FILE_PATH, { readOnly = false })
+local readOnlyMeta2 = fs.metadata(TEMP_FILE_PATH)
+assert(
+	readOnlyMeta2.permissions ~= nil,
+	"File metadata permissions are missing after readOnly set to false"
+)
+assert(
+	not readOnlyMeta2.permissions.readOnly,
+	"setPermissions did not update the readOnly to be false"
+)
+
 -- Finally, clean up after us for any subsequent tests
 
 fs.removeFile(TEMP_FILE_PATH)

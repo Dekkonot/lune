@@ -7,7 +7,7 @@ export type MetadataKind = "file" | "dir" | "symlink"
 	@interface MetadataPermissions
 	@within FS
 
-	Permissions for the given file or directory.
+	Permissions for a file or directory.
 
 	This is a dictionary that will contain the following values:
 
@@ -208,6 +208,21 @@ function fs.removeDir(path: string) end
 function fs.metadata(path: string): Metadata
 	return nil :: any
 end
+
+--[=[
+	@within FS
+
+	Sets permissions for the given path.
+
+	An error will be thrown in the following situations:
+
+	* The current process lacks permissions to access `path`.
+	* The current process lacks permissions to write permissions for `path`.
+
+	@param path The path to set permissions for
+	@param permissions A dictionary controlling what permissions to set
+]=]
+function fs.setPermissions(path: string, permissions: MetadataPermissions) end
 
 --[=[
 	@within FS
