@@ -343,13 +343,17 @@ impl Instance {
         Gets a property for the instance, if it exists.
     */
     pub fn get_property(&self, name: impl AsRef<str>) -> Option<DomValue> {
+        // We do not want to create new Ustrs. All properties on Instances are
+        // existing Ustrs, and ideally we don't want `Instance["foo"]` to
+        // allocate a new Ustr since it will last until the program closes.
+        let prop_name = Ustr::from_existing(name.as_ref())?;
         INTERNAL_DOM
             .lock()
             .expect("Failed to lock document")
             .get_by_ref(self.dom_ref)
             .expect("Failed to find instance in document")
             .properties
-            .get(&ustr(name.as_ref()))
+            .get(&prop_name)
             .cloned()
     }
 
@@ -360,13 +364,17 @@ impl Instance {
         property does not actually exist for the instance class.
     */
     pub fn set_property(&self, name: impl AsRef<str>, value: DomValue) {
+        // Unlike in get_property, there is no performance concern with
+        // unbound property sets because this function is only called after
+        // validating the property actually exists.
+        let name = ustr(name.as_ref());
         INTERNAL_DOM
             .lock()
             .expect("Failed to lock document")
             .get_by_ref_mut(self.dom_ref)
             .expect("Failed to find instance in document")
             .properties
-            .insert(ustr(name.as_ref()), value);
+            .insert(name, value);
     }
 
     /**
